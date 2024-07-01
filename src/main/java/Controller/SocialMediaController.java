@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Model.Account;
+import Model.Message;
 import Service.AccountService;
 import Service.MessageService;
 import io.javalin.Javalin;
@@ -35,7 +36,7 @@ public class SocialMediaController {
         Javalin app = Javalin.create();
         app.post("/register", this::postUserHandler);
         app.post("/login", this::loginUserHandler);
-
+        app.post("/messages",this::postMessageHandler);
 
 
         return app;
@@ -65,9 +66,14 @@ public class SocialMediaController {
             cxt.status(401).result("");
         }
     }
+    private void postMessageHandler(Context cxt) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(cxt.body(), Message.class);
+        Message addedMessage = messageService.createMessage(message);
+        if(addedMessage!= null){
+            cxt.status(200).json(addedMessage);
+        }else{
+            cxt.status(400).result("");
+        }
+    }
 }
-
-
-
-// - The registration will be successful if and only if the username is not blank, the password is at least 4 characters long, and an Account with that username does not already exist. If all these conditions are met, the response body should contain a JSON of the Account, including its account_id. The response status should be 200 OK, which is the default. The new account should be persisted to the database.
-// - If the registration is not successful, the response status should be 400. (Client error)

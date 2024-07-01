@@ -19,10 +19,7 @@ public class AccountDAO {
             preparedStatement.setString(1, account.getUsername());
             preparedStatement.setString(2, account.getPassword());
 
-            int affectedRows = preparedStatement.executeUpdate();
-            if (affectedRows == 0) {
-                throw new SQLException("Creating account failed, no rows affected.");
-            }
+            preparedStatement.executeUpdate();
 
             try (ResultSet pkeyResultSet = preparedStatement.getGeneratedKeys()) {
                 if (pkeyResultSet.next()) {
@@ -71,5 +68,21 @@ public class AccountDAO {
             System.out.println("Error: " + e.getMessage());
         }
         return null;
+    }
+    public Account getAccountById(int accountId){
+        String sql = "Select * from account where account_id = ?";
+        try(Connection connection =  ConnectionUtil.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+
+                preparedStatement.setInt(1, accountId);
+                try (ResultSet rs = preparedStatement.executeQuery()) {
+                    if (rs.next()) {
+                        return new Account(rs.getInt("account_id"), rs.getString("username"), rs.getString("password"));
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+            return null;
     }
 }

@@ -19,6 +19,7 @@ public class AccountService {
             account.getUsername().isEmpty() ||
             account.getPassword().length() < 4 ||
             accountDAO.getAccountByUsername(account.getUsername()) != null) {
+            
             return null;
         }
         return accountDAO.createUser(account);
