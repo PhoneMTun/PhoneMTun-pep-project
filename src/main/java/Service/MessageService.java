@@ -32,8 +32,29 @@ public class MessageService {
     public List<Message> getAllMessages(){
         return messageDAO.getAllMessages();
     }
+
     public Message getMessageById(int messageId){
         return messageDAO.getMessageById(messageId);
     }
 
+    public Message delectMessageById(int messageId){
+        Message message= messageDAO.getMessageById(messageId);
+        if(message!= null || messageDAO.deleteMessageById(messageId)){
+            return message;
+    }
+        return null;
+    }
+
+    public Message updateMessageById(int messageId, String newMessage) {
+        Message oldMessage = messageDAO.getMessageById(messageId);
+        if (oldMessage == null || newMessage == null || newMessage.isEmpty() || newMessage.length() > 255) {
+            return null;
+        }
+        oldMessage.setMessage_text(newMessage);
+        return messageDAO.updateMessageById(messageId, newMessage);
+    }
+    
+    public List<Message> getMessagesByAccountId(int accountId){
+        return messageDAO.getMessagesByAccountId(accountId);
+    }
 }

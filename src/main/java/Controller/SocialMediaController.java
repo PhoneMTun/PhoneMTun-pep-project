@@ -40,11 +40,14 @@ public class SocialMediaController {
         app.post("/messages",this::postMessageHandler);
         app.get("/messages", this::getMessagesHandler);
         app.get("/messages/{messageId}", this::getMessageByIdHandler);
+        app.get("/accounts/{account_id}/messages", this::getMessagebyAccountIdHandler);
+        app.delete("/messages/{messageId}", this::deleteMessageByIdHandler);
+        app.patch("/messages/{messageId}", this::updateMessageByIdHandler);
 
 
         return app;
     }
-
+    
     /**
      * This is an example handler for an example endpoint.
      * @param ctx The Javalin Context object manages information about both the HTTP request and response.
@@ -95,5 +98,31 @@ public class SocialMediaController {
         }else{
             ctx.status(200).result("");
         }
+    }
+    private void deleteMessageByIdHandler(Context ctx) throws JsonProcessingException{
+        int message_id = Integer.parseInt(ctx.pathParam("messageId"));
+        Message message = messageService.delectMessageById(message_id);
+        if(message!=null){
+            ctx.status(200).json(message);
+        }else{
+            ctx.status(200).result("");
+        }
+    }
+    private void updateMessageByIdHandler(Context ctx) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        Message  message = mapper.readValue(ctx.body(), Message.class);
+        int message_id = Integer.parseInt(ctx.pathParam("messageId"));
+        Message updatedMessage = messageService.updateMessageById(message_id, message.getMessage_text());
+        if(updatedMessage!= null){
+            ctx.status(200).json(updatedMessage);
+        }else{
+            ctx.status(400).result("");
+        }
+
+    }
+    private void getMessagebyAccountIdHandler(Context ctx) throws JsonProcessingException{
+        int account_id = Integer.parseInt(ctx.pathParam("account_id"));
+        List <Message> messages = messageService.getMessagesByAccountId(account_id);
+        ctx.status(200).json(messages);
     }
 }
