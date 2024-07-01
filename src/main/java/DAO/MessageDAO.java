@@ -5,9 +5,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
+import java.util.List;
 import Model.Message;
 import Util.ConnectionUtil;
+import kotlin.time.MeasureTimeKt;
 
 public class MessageDAO {
     public Message createMessage(Message message){
@@ -21,19 +23,61 @@ public class MessageDAO {
                 preparedStatement.setLong(3, message.getTime_posted_epoch());
 
                 preparedStatement.executeUpdate();
-                try(ResultSet rs = preparedStatement.getGeneratedKeys()){
-                    if(rs.next()){
-                        int generatedMessageId = rs.getInt(1);
-                        return new Message(generatedMessageId, message.getPosted_by(), message.getMessage_text(), message.getTime_posted_epoch());
-                    }else{
-                        throw new SQLException("Message creation failed");
-                    }
-
+                ResultSet rs = preparedStatement.getGeneratedKeys();
+                if(rs.next()){
+                    int generatedMessageId = rs.getInt(1);
+                    return new Message(generatedMessageId, message.getPosted_by(), message.getMessage_text(), message.getTime_posted_epoch());
+                }else{
+                    throw new SQLException("Message creation failed");
                 }
+
         }catch(SQLException e){
             System.out.print(e.getMessage());
         }
         return null;
     }
-    
+
+    public List<Message> getAllMessages(){
+        List<Message> messages = new ArrayList<>();
+        String sql = "Select * from message";
+        try(
+            Connection connection = ConnectionUtil.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);){
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                Message message = new Message(
+                        rs.getInt("message_id"),
+                        rs.getInt("posted_by"),
+                        rs.getString("message_text"),
+                        rs.getLong("time_posted_epoch")
+                );
+                messages.add(message);
+            }
+        }catch(SQLException e){
+            System.out.print(e.getMessage());
+        }
+        return messages;
+       }
+
+    public Message getMessageById(int messageId){
+        String sql = "Select * from message where message_id =?";
+        try (Connection connection = ConnectionUtil.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, messageId);
+            ResultSet rs = preparedStatement.executeQuery();
+            if(rs.next()){
+                return new Message(
+                    rs.getInt("message_id"),
+                    rs.getInt("posted_by"),
+                    rs.getString("message_text"),
+                    rs.getLong("time_posted_epoch")
+                );
+            }
+
+         }catch(SQLException e){
+            System.out.print(e.getMessage());
+         }
+        return null;
+    }
 }

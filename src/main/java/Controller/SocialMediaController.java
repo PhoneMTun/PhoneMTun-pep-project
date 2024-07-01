@@ -9,6 +9,7 @@ import Service.AccountService;
 import Service.MessageService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import java.util.List;
 
 /**
  * TODO: You will need to write your own endpoints and handlers for your controller. The endpoints you will need can be
@@ -37,6 +38,8 @@ public class SocialMediaController {
         app.post("/register", this::postUserHandler);
         app.post("/login", this::loginUserHandler);
         app.post("/messages",this::postMessageHandler);
+        app.get("/messages", this::getMessagesHandler);
+        app.get("/messages/{messageId}", this::getMessageByIdHandler);
 
 
         return app;
@@ -44,36 +47,53 @@ public class SocialMediaController {
 
     /**
      * This is an example handler for an example endpoint.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
+     * @param ctx The Javalin Context object manages information about both the HTTP request and response.
      */
-    private void postUserHandler(Context context) throws JsonProcessingException {
+    private void postUserHandler(Context ctx) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        Account account = mapper.readValue(context.body(), Account.class);
+        Account account = mapper.readValue(ctx.body(), Account.class);
         Account addedUser = accountService.createAccount(account);
         if (addedUser != null) {
-            context.status(200).json(mapper.writeValueAsString(addedUser));
+            ctx.status(200).json(mapper.writeValueAsString(addedUser));
         } else {
-            context.status(400).result("");
+            ctx.status(400).result("");
         }
     }
-    private void loginUserHandler(Context cxt) throws JsonProcessingException{
+
+    private void loginUserHandler(Context ctx) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
-        Account account = mapper.readValue(cxt.body(), Account.class);
+        Account account = mapper.readValue(ctx.body(), Account.class);
         Account loginUser = accountService.loginAccount(account.getUsername(), account.getPassword());
         if (loginUser != null) {
-            cxt.status(200).json(loginUser);
+            ctx.status(200).json(loginUser);
         } else {
-            cxt.status(401).result("");
+            ctx.status(401).result("");
         }
     }
-    private void postMessageHandler(Context cxt) throws JsonProcessingException{
+
+    private void postMessageHandler(Context ctx) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
-        Message message = mapper.readValue(cxt.body(), Message.class);
+        Message message = mapper.readValue(ctx.body(), Message.class);
         Message addedMessage = messageService.createMessage(message);
         if(addedMessage!= null){
-            cxt.status(200).json(addedMessage);
+            ctx.status(200).json(addedMessage);
         }else{
-            cxt.status(400).result("");
+            ctx.status(400).result("");
+        }
+    }
+
+    private void getMessagesHandler(Context ctx) throws JsonProcessingException{
+        List<Message> messages = messageService.getAllMessages();
+        ctx.status(200).json(messages);
+    }
+
+    private void getMessageByIdHandler(Context ctx) throws JsonProcessingException{
+        int messageId = Integer.parseInt(ctx.pathParam("messageId"));
+        Message message = messageService.getMessageById(messageId);
+        if(message!=null){
+            ctx.status(200).json(message);
+        }else{
+            ctx.status(200).result("");
         }
     }
 }
